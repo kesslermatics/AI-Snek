@@ -11,7 +11,7 @@ class DQNAgent:
     to learn the optimal policy.
     """
     
-    def __init__(self, state_dim, action_dim, lr=1e-3, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, memory_size=10000):
+    def __init__(self, state_dim, action_dim, lr=0.01, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, memory_size=10000):
         """
         Initializes the agent with the given parameters.
 
@@ -49,6 +49,10 @@ class DQNAgent:
         self.model = QNetwork(state_dim, action_dim)
         self.target_model = QNetwork(state_dim, action_dim)
 
+        if torch.cuda.is_available():
+            self.model.cuda()  # Move model to GPU
+            self.target_model.cuda()
+
         # Optimizer for training the Q-network
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
 
@@ -70,6 +74,10 @@ class DQNAgent:
         
         # Otherwise, predict the Q-values of the current state and select the best action
         state = torch.FloatTensor(state).flatten()
+
+        if torch.cuda.is_available():
+            state = state.cuda()
+        
         q_values = self.model(state)
         return torch.argmax(q_values).item()
 
@@ -104,9 +112,13 @@ class DQNAgent:
         batch = random.sample(self.memory, self.batch_size)
         
         for state, action, reward, next_state, done in batch:
-            # Prepare the data for PyTorch
             state = torch.FloatTensor(state).flatten()
             next_state = torch.FloatTensor(next_state).flatten()
+
+            if torch.cuda.is_available():
+                state = state.cuda()  # Zustandstensoren auf die GPU verschieben
+                next_state = next_state.cuda()
+
             reward = torch.tensor([reward], dtype=torch.float32)
             
             # Compute the target Q-value

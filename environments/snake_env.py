@@ -22,7 +22,7 @@ class SnakeEnv(gym.Env):
         self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])  # Place food at a random location
         self.reward = 0  # Initialize reward
         self.step_count = 0  # Counter for the number of steps taken in the current episode
-        self.max_steps = 200  # The maximum number of steps before the episode terminates
+        self.max_steps = 150  # The maximum number of steps before the episode terminates
         self.start_time = time.time()  # Record the starting time for timing the episode duration
         self.done = False  # Initialize the done flag which signals the end of an episode
         self.action_space = spaces.Discrete(3)  # Redefine the action space to have three actions: left, forward, right
@@ -52,9 +52,9 @@ class SnakeEnv(gym.Env):
         """
         Take a step in the environment given an action.
         """
-        reward_for_eating = 10  # Reward for eating food
+        reward_for_eating = 30  # Reward for eating food
         reward_for_dying = -10  # Penalty for dying (hitting the wall or self)
-        reward_for_moving = 0  # Reward for making a move, encourages the snake to keep moving
+        reward_for_moving = -0.01  # Reward for making a move, encourages the snake to keep moving
 
         self.step_count += 1  # Increment step count
 
@@ -86,6 +86,7 @@ class SnakeEnv(gym.Env):
         head = self.snake[-1] + self.aim
         if not self._inside(head) or any((segment == head).all() for segment in self.snake):
             self.done = True
+            self.step_count = 0
             self.reward = reward_for_dying
         else:
             # If food is eaten, reset step count, increase reward, and respawn food
@@ -117,6 +118,7 @@ class SnakeEnv(gym.Env):
         print(f"Food: {self.food}")
         print(f"Snake: {self.snake}")
         print(f"Elapsed Time: {str(round(time.time() - self.start_time, 2))}s")
+        print(f"Step Count: {self.step_count}")
         print(f"Current Reward: {current_reward}")
         grid_display = [[' ' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
         

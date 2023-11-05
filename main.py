@@ -30,7 +30,8 @@ agent = DQNAgent(state_dim, action_dim)
 output = []
 
 # Set the number of episodes for which the agent will be trained.
-episodes = 200
+episodes = 500
+
 for e in range(episodes):
     # Record the start time of the episode.
     start_time = time.time()
