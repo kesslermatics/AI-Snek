@@ -3,6 +3,7 @@ import random
 from agents.q_network import QNetwork
 import torch
 import torch.nn as nn
+import time
 import torch.optim as optim
 
 class DQNAgent:
@@ -11,7 +12,7 @@ class DQNAgent:
     to learn the optimal policy.
     """
     
-    def __init__(self, state_dim, action_dim, lr=0.01, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, memory_size=10000):
+    def __init__(self, state_dim, action_dim, lr=0.005, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, memory_size=10000):
         """
         Initializes the agent with the given parameters.
 
@@ -140,12 +141,27 @@ class DQNAgent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-        
-        # Update the exploration rate
-        self.epsilon = max(self.epsilon_min, self.epsilon_decay * self.epsilon)
     
     def update_target_model(self):
         """
         Updates the target network by copying the weights from the trained Q-network.
         """
         self.target_model.load_state_dict(self.model.state_dict())
+
+
+        """
+        This function should be called at the end of each episode to update the epsilon
+        value. It allows epsilon to decay at a rate that's independent of the number
+        of training steps, which could be many per episode.
+        """
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon)
+        """
+        This function should be called at the end of each episode to update the epsilon
+        value. It allows epsilon to decay at a rate that's independent of the number
+        of training steps, which could be many per episode.
+        """
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon)

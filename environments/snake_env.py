@@ -22,7 +22,7 @@ class SnakeEnv(gym.Env):
         self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])  # Place food at a random location
         self.reward = 0  # Initialize reward
         self.step_count = 0  # Counter for the number of steps taken in the current episode
-        self.max_steps = 150  # The maximum number of steps before the episode terminates
+        self.max_steps = 15000  # The maximum number of steps before the episode terminates
         self.start_time = time.time()  # Record the starting time for timing the episode duration
         self.done = False  # Initialize the done flag which signals the end of an episode
         self.action_space = spaces.Discrete(3)  # Redefine the action space to have three actions: left, forward, right
