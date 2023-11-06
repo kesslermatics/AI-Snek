@@ -52,9 +52,9 @@ class SnakeEnv(gym.Env):
         """
         Take a step in the environment given an action.
         """
-        reward_for_eating = 30  # Reward for eating food
-        reward_for_dying = -10  # Penalty for dying (hitting the wall or self)
-        reward_for_moving = -0.01  # Reward for making a move, encourages the snake to keep moving
+        reward_for_eating = 15  # Reward for eating food
+        reward_for_dying = -20  # Penalty for dying (hitting the wall or self)
+        reward_for_moving = 0.01  # Reward for making a move, encourages the snake to keep moving
 
         self.step_count += 1  # Increment step count
 

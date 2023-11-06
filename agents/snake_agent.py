@@ -12,7 +12,7 @@ class DQNAgent:
     to learn the optimal policy.
     """
     
-    def __init__(self, state_dim, action_dim, lr=0.005, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, memory_size=10000):
+    def __init__(self, state_dim, action_dim, lr=0.005, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.992, batch_size=16, memory_size=10000):
         """
         Initializes the agent with the given parameters.
 
