@@ -4,6 +4,7 @@ from gym import spaces
 from random import randrange
 import os
 import time
+import sys
 
 class SnakeEnv(gym.Env):
     """
@@ -111,24 +112,25 @@ class SnakeEnv(gym.Env):
             self.reward = reward_for_dying
             self.step_count = 0
         
-        # Clear the terminal and print the current state of the game
-        # This is useful for visualizing the game when playing in the console.
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print(f"Episode: {episode}")
-        print(f"Food: {self.food}")
-        print(f"Snake: {self.snake}")
-        print(f"Elapsed Time: {str(round(time.time() - self.start_time, 2))}s")
-        print(f"Step Count: {self.step_count}")
-        print(f"Current Reward: {current_reward}")
-        grid_display = [[' ' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
+        if (sys.argv[1] == "True"):
+            # Clear the terminal and print the current state of the game
+            # This is useful for visualizing the game when playing in the console.
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(f"Episode: {episode}")
+            print(f"Food: {self.food}")
+            print(f"Snake: {self.snake}")
+            print(f"Elapsed Time: {str(round(time.time() - self.start_time, 2))}s")
+            print(f"Step Count: {self.step_count}")
+            print(f"Current Reward: {current_reward}")
+            grid_display = [[' ' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
         
-        for segment in self.snake:
-            grid_display[segment[0]][segment[1]] = 'S'
+            for segment in self.snake:
+                grid_display[segment[0]][segment[1]] = 'S'
         
-        grid_display[self.food[0]][self.food[1]] = 'F'
+            grid_display[self.food[0]][self.food[1]] = 'F'
         
-        for row in grid_display:
-            print(' '.join(row))
+            for row in grid_display:
+                print(' '.join(row))
 
         return self._get_state(), self.reward, self.done, {}
 
