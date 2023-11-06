@@ -4,6 +4,7 @@ from agents.snake_agent import DQNAgent
 import time
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
+import sys
 
 # Activate interactive mode for matplotlib, allowing plots to be updated dynamically.
 plt.ion() 
@@ -30,7 +31,7 @@ agent = DQNAgent(state_dim, action_dim)
 output = []
 
 # Set the number of episodes for which the agent will be trained.
-episodes = 100
+episodes = int(sys.argv[2])
 
 for e in range(episodes):
     print(f"Episode: {e}")
