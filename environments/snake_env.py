@@ -66,7 +66,7 @@ class SnakeEnv(gym.Env):
         reward_for_eating = 20  # Reward for eating food
         reward_for_dying = -40  # Penalty for dying (hitting the wall or self)
         reward_for_moving_towards_food = 2  # Reward for moving towards the food
-        reward_for_moving_away_from_food = -1  # Penalty for moving away from the food
+        reward_for_moving_away_from_food = -2  # Penalty for moving away from the food
 
         # Calculate the distance to the food before the move
         head = self.snake[-1] + self.aim
@@ -102,14 +102,6 @@ class SnakeEnv(gym.Env):
         new_head = self.snake[-1] + self.aim  # The new head position after the move
         distance_after_move = np.linalg.norm(new_head - self.food)
 
-        # Adjust the reward based on the snake's movement relative to the food
-        if distance_after_move < distance_before_move:
-            # If the snake has moved closer to the food, reward this action
-            self.reward += reward_for_moving_towards_food
-        elif distance_after_move > distance_before_move:
-            # If the snake has moved away from the food, penalize this action
-            self.reward += reward_for_moving_away_from_food
-
         if not self._inside(head) or any((segment == head).all() for segment in self.snake):
             self.done = True
             self.step_count = 0
@@ -129,6 +121,13 @@ class SnakeEnv(gym.Env):
             else:
                 self.snake.append(head)
                 self.snake.pop(0)
+                # Adjust the reward based on the snake's movement relative to the food
+                if distance_after_move < distance_before_move:
+                    # If the snake has moved closer to the food, reward this action
+                    self.reward += reward_for_moving_towards_food
+                elif distance_after_move > distance_before_move:
+                    # If the snake has moved away from the food, penalize this action
+                    self.reward += reward_for_moving_away_from_food
 
         # Check if the max number of steps has been reached
         if self.step_count >= self.max_steps:
