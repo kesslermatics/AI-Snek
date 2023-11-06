@@ -52,10 +52,25 @@ class SnakeEnv(gym.Env):
     def step(self, action, episode, current_reward):
         """
         Take a step in the environment given an action.
+    
+        Parameters:
+        action (int): The action to be taken by the agent.
+        episode (int): The current episode number.
+        current_reward (float): The current accumulated reward in the episode.
+    
+        Returns:
+        tuple: A tuple containing the new state, the reward received by taking the action,
+           a boolean indicating if the episode has ended, and an empty dictionary.
         """
-        reward_for_eating = 15  # Reward for eating food
-        reward_for_dying = -20  # Penalty for dying (hitting the wall or self)
-        reward_for_moving = 0.01  # Reward for making a move, encourages the snake to keep moving
+        self.reward = 0
+        reward_for_eating = 20  # Reward for eating food
+        reward_for_dying = -40  # Penalty for dying (hitting the wall or self)
+        reward_for_moving_towards_food = 2  # Reward for moving towards the food
+        reward_for_moving_away_from_food = -1  # Penalty for moving away from the food
+
+        # Calculate the distance to the food before the move
+        head = self.snake[-1] + self.aim
+        distance_before_move = np.linalg.norm(head - self.food)
 
         self.step_count += 1  # Increment step count
 
@@ -83,18 +98,28 @@ class SnakeEnv(gym.Env):
             elif action == 2:  # turn right
                 self.aim = np.array([0, -1])
 
-        # Check for collision with the wall or self
-        head = self.snake[-1] + self.aim
+        # Calculate the distance to the food after the move
+        new_head = self.snake[-1] + self.aim  # The new head position after the move
+        distance_after_move = np.linalg.norm(new_head - self.food)
+
+        # Adjust the reward based on the snake's movement relative to the food
+        if distance_after_move < distance_before_move:
+            # If the snake has moved closer to the food, reward this action
+            self.reward += reward_for_moving_towards_food
+        elif distance_after_move > distance_before_move:
+            # If the snake has moved away from the food, penalize this action
+            self.reward += reward_for_moving_away_from_food
+
         if not self._inside(head) or any((segment == head).all() for segment in self.snake):
             self.done = True
             self.step_count = 0
-            self.reward = reward_for_dying
+            self.reward += reward_for_dying
         else:
             # If food is eaten, reset step count, increase reward, and respawn food
             if (head == self.food).all():
                 self.step_count = 0
-                self.reward = reward_for_eating 
                 self.snake.append(head)
+                self.reward += reward_for_eating     
                 while True:
                     self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])
                     if not any((segment == self.food).all() for segment in self.snake):
@@ -104,13 +129,12 @@ class SnakeEnv(gym.Env):
             else:
                 self.snake.append(head)
                 self.snake.pop(0)
-                self.reward = reward_for_moving
 
         # Check if the max number of steps has been reached
         if self.step_count >= self.max_steps:
             self.done = True
-            self.reward = reward_for_dying
             self.step_count = 0
+            self.reward += reward_for_dying
         
         if (sys.argv[1] == "True"):
             # Clear the terminal and print the current state of the game

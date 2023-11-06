@@ -82,5 +82,7 @@ for e in range(episodes):
 for text in output:
     print(text)
 
+print(f"Ending epsilon: {agent.epsilon}")
+
 # Display the plot with a blocking call to ensure it stays open at the end of the script.
 plt.show(block=True)
