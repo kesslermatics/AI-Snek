@@ -12,7 +12,7 @@ class DQNAgent:
     to learn the optimal policy.
     """
     
-    def __init__(self, state_dim, action_dim, lr=0.005, gamma=0.99, epsilon=1.0, epsilon_min=0.01, epsilon_decay=0.992, batch_size=16, memory_size=10000):
+    def __init__(self, state_dim, action_dim, lr=0.001, gamma=0.99, epsilon=1.0, epsilon_min=0.05, epsilon_decay=0.993, batch_size=64, memory_size=10000):
         """
         Initializes the agent with the given parameters.
 
@@ -148,7 +148,6 @@ class DQNAgent:
         """
         self.target_model.load_state_dict(self.model.state_dict())
 
-
         """
         This function should be called at the end of each episode to update the epsilon
         value. It allows epsilon to decay at a rate that's independent of the number
@@ -157,11 +156,4 @@ class DQNAgent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
-        """
-        This function should be called at the end of each episode to update the epsilon
-        value. It allows epsilon to decay at a rate that's independent of the number
-        of training steps, which could be many per episode.
-        """
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-        self.epsilon = max(self.epsilon_min, self.epsilon)
+        

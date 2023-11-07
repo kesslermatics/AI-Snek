@@ -47,7 +47,7 @@ for e in range(episodes):
         # The agent chooses an action based on the current state.
         action = agent.act(state)
         # The environment responds to the action with the next state and reward.
-        next_state, reward, done, _ = env.step(action, episode=e, current_reward=episode_reward)
+        next_state, reward, done, _ = env.step(action, episode=e, current_reward=episode_reward, current_epsilon=agent.epsilon)
         
         # The agent stores the experience in memory.
         agent.remember(state, action, reward, next_state, done)

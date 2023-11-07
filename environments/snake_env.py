@@ -19,11 +19,11 @@ class SnakeEnv(gym.Env):
         super(SnakeEnv, self).__init__()
         self.snake = [np.array([10, 10])]  # Initialize the snake at the center of the grid
         self.aim = np.array([0, 1])  # The initial direction of the snake is upwards
-        self.grid_size = 20  # Define the size of the grid. The environment will be a 20x20 grid
+        self.grid_size = 10  # Define the size of the grid. The environment will be a 20x20 grid
         self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])  # Place food at a random location
         self.reward = 0  # Initialize reward
         self.step_count = 0  # Counter for the number of steps taken in the current episode
-        self.max_steps = 15000  # The maximum number of steps before the episode terminates
+        self.max_steps = 1000  # The maximum number of steps before the episode terminates
         self.start_time = time.time()  # Record the starting time for timing the episode duration
         self.done = False  # Initialize the done flag which signals the end of an episode
         self.action_space = spaces.Discrete(3)  # Redefine the action space to have three actions: left, forward, right
@@ -33,9 +33,10 @@ class SnakeEnv(gym.Env):
         """
         Reset the environment to a new initial state.
         """
-        self.snake = [np.array([10, 10])]  # Reset the snake's position
+        self.snake = [np.array([5, 5])]  # Reset the snake's position
         self.aim = np.array([0, -1])  # Reset the snake's direction to upwards
         self.done = False  # Reset the done flag
+        self.reward = 0
         self.start_time = time.time()  # Reset the start time
         return self._get_state()  # Return the initial state
 
@@ -49,7 +50,7 @@ class SnakeEnv(gym.Env):
         state[self.food[0]][self.food[1]] = 2  # Mark the food's position with a 2
         return state
 
-    def step(self, action, episode, current_reward):
+    def step(self, action, episode, current_reward, current_epsilon):
         """
         Take a step in the environment given an action.
     
@@ -62,15 +63,15 @@ class SnakeEnv(gym.Env):
         tuple: A tuple containing the new state, the reward received by taking the action,
            a boolean indicating if the episode has ended, and an empty dictionary.
         """
-        self.reward = 0
-        reward_for_eating = 20  # Reward for eating food
-        reward_for_dying = -40  # Penalty for dying (hitting the wall or self)
-        reward_for_moving_towards_food = 2  # Reward for moving towards the food
-        reward_for_moving_away_from_food = -2  # Penalty for moving away from the food
+        reward_for_eating = 40  # Reward for eating food
+        reward_for_dying = -30  # Penalty for dying (hitting the wall or self)
+        reward_for_moving_towards_food = 1  # Reward for moving towards the food
+        reward_for_moving_away_from_food = -1  # Penalty for moving away from the food
 
         # Calculate the distance to the food before the move
         head = self.snake[-1] + self.aim
-        distance_before_move = np.linalg.norm(head - self.food)
+        distance_before_move = np.linalg.norm(self.snake[0] - self.food)
+        distance_after_move = np.linalg.norm(self.snake[0] - self.food)
 
         self.step_count += 1  # Increment step count
 
@@ -98,22 +99,18 @@ class SnakeEnv(gym.Env):
             elif action == 2:  # turn right
                 self.aim = np.array([0, -1])
 
-        # Calculate the distance to the food after the move
-        new_head = self.snake[-1] + self.aim  # The new head position after the move
-        distance_after_move = np.linalg.norm(new_head - self.food)
-
         if not self._inside(head) or any((segment == head).all() for segment in self.snake):
             self.done = True
             self.step_count = 0
-            self.reward += reward_for_dying
+            self.reward = reward_for_dying
         else:
             # If food is eaten, reset step count, increase reward, and respawn food
             if (head == self.food).all():
                 self.step_count = 0
                 self.snake.append(head)
-                self.reward += reward_for_eating     
+                self.reward = reward_for_eating     
                 while True:
-                    self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])
+                    self.food = np.array([randrange(5, self.grid_size), randrange(5, self.grid_size)])
                     if not any((segment == self.food).all() for segment in self.snake):
                         break
 
@@ -121,19 +118,20 @@ class SnakeEnv(gym.Env):
             else:
                 self.snake.append(head)
                 self.snake.pop(0)
+                distance_after_move = np.linalg.norm(self.snake[0] - self.food)
                 # Adjust the reward based on the snake's movement relative to the food
                 if distance_after_move < distance_before_move:
                     # If the snake has moved closer to the food, reward this action
-                    self.reward += reward_for_moving_towards_food
+                    self.reward = reward_for_moving_towards_food
                 elif distance_after_move > distance_before_move:
                     # If the snake has moved away from the food, penalize this action
-                    self.reward += reward_for_moving_away_from_food
+                    self.reward = reward_for_moving_away_from_food
 
         # Check if the max number of steps has been reached
         if self.step_count >= self.max_steps:
             self.done = True
             self.step_count = 0
-            self.reward += reward_for_dying
+            self.reward = reward_for_dying
         
         if (sys.argv[1] == "True"):
             # Clear the terminal and print the current state of the game
@@ -145,13 +143,27 @@ class SnakeEnv(gym.Env):
             print(f"Elapsed Time: {str(round(time.time() - self.start_time, 2))}s")
             print(f"Step Count: {self.step_count}")
             print(f"Current Reward: {current_reward}")
-            grid_display = [[' ' for _ in range(self.grid_size)] for _ in range(self.grid_size)]
-        
+            print(f"Current Epsilon: {current_epsilon}")
+            print(f"Distance Delta: {distance_after_move - distance_before_move}")
+
+            # Initialize the display grid with a border
+            grid_display = [[' ' for _ in range(self.grid_size + 2)] for _ in range(self.grid_size + 2)]
+
+            # Set the horizontal border
+            for i in range(self.grid_size + 2):
+                grid_display[0][i] = grid_display[-1][i] = '-'
+
+            # Set the vertical border
+            for i in range(1, self.grid_size + 1):
+                grid_display[i][0] = grid_display[i][-1] = '|'
+
+            # Place the snake and food symbols
             for segment in self.snake:
-                grid_display[segment[0]][segment[1]] = 'S'
-        
-            grid_display[self.food[0]][self.food[1]] = 'F'
-        
+                grid_display[segment[0] + 1][segment[1] + 1] = 'S'  # Adjust for border offset
+
+            grid_display[self.food[0] + 1][self.food[1] + 1] = 'F'  # Adjust for border offset
+
+            # Print the display grid to the console
             for row in grid_display:
                 print(' '.join(row))
 
