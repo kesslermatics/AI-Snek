@@ -1,22 +1,10 @@
 # Importing necessary classes and functions from other files and libraries.
 from environments.snake_env import SnakeEnv
-from agents.snake_agent import DQNAgent
+from agents.snake_agent import QLearningAgent  # Make sure to import the correct class
 import time
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
 import sys
-
-# Activate interactive mode for matplotlib, allowing plots to be updated dynamically.
-plt.ion() 
-
-# Setting up the plot for live-updating during the training process.
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.set_title('Training Progress')
-ax.set_xlabel('Episode')
-ax.set_ylabel('Score')
-
-# These lists will store the episodes and corresponding scores for plotting.
-xs, ys = [], []
 
 # Instantiate the Snake environment.
 env = SnakeEnv()
@@ -24,11 +12,15 @@ env = SnakeEnv()
 state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
 # Retrieve the number of possible actions from the environment.
 action_dim = env.action_space.n
-# Create an instance of the DQN agent with the state and action dimensions.
-agent = DQNAgent(state_dim, action_dim)
+# Create an instance of the QLearning agent with the state and action dimensions.
+agent = QLearningAgent(state_dim, action_dim)
+
+fig, ax = plt.subplots(figsize=(10, 5))
 
 # List to store output information for each episode.
 output = []
+# These lists will store the episodes and corresponding scores for plotting.
+xs, ys = [], []
 
 # Set the number of episodes for which the agent will be trained.
 episodes = int(sys.argv[2])
@@ -59,13 +51,13 @@ for e in range(episodes):
         # Accumulate the reward.
         episode_reward += reward
 
-        # If the episode is done, log the result and update the agent's target network.
         if done:
+            # Update epsilon after each episode.
+            agent.update_epsilon()
+
             end_time = time.time()
             # Append the result of the episode to the output list.
             output.append(f"Episode: {e+1}/{episodes}, Score: {episode_reward}, Elapsed time: {str(round(end_time - start_time, 2))}s")
-            # Update the target network for the DQN algorithm.
-            agent.update_target_model()
 
             # Append the episode number and reward to lists for plotting.
             xs.append(e+1)
@@ -83,6 +75,11 @@ for text in output:
     print(text)
 
 print(f"Ending epsilon: {agent.epsilon}")
+
+# Setting up the plot for live-updating during the training process.
+ax.set_title('Training Progress')
+ax.set_xlabel('Episode')
+ax.set_ylabel('Score')
 
 # Display the plot with a blocking call to ensure it stays open at the end of the script.
 plt.show(block=True)

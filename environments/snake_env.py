@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 from gym import spaces
-from random import randrange
+from random import randint
 import os
 import time
 import sys
@@ -20,7 +20,7 @@ class SnakeEnv(gym.Env):
         self.snake = [np.array([10, 10])]  # Initialize the snake at the center of the grid
         self.aim = np.array([0, 1])  # The initial direction of the snake is upwards
         self.grid_size = 10  # Define the size of the grid. The environment will be a 20x20 grid
-        self.food = np.array([randrange(0, self.grid_size), randrange(0, self.grid_size)])  # Place food at a random location
+        self.food = np.array([randint(0, self.grid_size-1), randint(0, self.grid_size-1)])  # Place food at a random location
         self.reward = 0  # Initialize reward
         self.step_count = 0  # Counter for the number of steps taken in the current episode
         self.max_steps = 1000  # The maximum number of steps before the episode terminates
@@ -63,8 +63,8 @@ class SnakeEnv(gym.Env):
         tuple: A tuple containing the new state, the reward received by taking the action,
            a boolean indicating if the episode has ended, and an empty dictionary.
         """
-        reward_for_eating = 40  # Reward for eating food
-        reward_for_dying = -30  # Penalty for dying (hitting the wall or self)
+        reward_for_eating = 10  # Reward for eating food
+        reward_for_dying = -10  # Penalty for dying (hitting the wall or self)
         reward_for_moving_towards_food = 1  # Reward for moving towards the food
         reward_for_moving_away_from_food = -1  # Penalty for moving away from the food
 
@@ -110,7 +110,7 @@ class SnakeEnv(gym.Env):
                 self.snake.append(head)
                 self.reward = reward_for_eating     
                 while True:
-                    self.food = np.array([randrange(5, self.grid_size), randrange(5, self.grid_size)])
+                    self.food = np.array([randint(0, self.grid_size-1), randint(0, self.grid_size-1)])
                     if not any((segment == self.food).all() for segment in self.snake):
                         break
 
@@ -146,26 +146,26 @@ class SnakeEnv(gym.Env):
             print(f"Current Epsilon: {current_epsilon}")
             print(f"Distance Delta: {distance_after_move - distance_before_move}")
 
-            # Initialize the display grid with a border
-            grid_display = [[' ' for _ in range(self.grid_size + 2)] for _ in range(self.grid_size + 2)]
+        # Initialize the display grid with a border
+        grid_display = [[' ' for _ in range(self.grid_size + 2)] for _ in range(self.grid_size + 2)]
 
-            # Set the horizontal border
-            for i in range(self.grid_size + 2):
-                grid_display[0][i] = grid_display[-1][i] = '-'
+        # Set the horizontal border
+        for i in range(self.grid_size + 2):
+            grid_display[0][i] = grid_display[-1][i] = '-'
 
-            # Set the vertical border
-            for i in range(1, self.grid_size + 1):
-                grid_display[i][0] = grid_display[i][-1] = '|'
+        # Set the vertical border
+        for i in range(1, self.grid_size + 1):
+            grid_display[i][0] = grid_display[i][-1] = '|'
 
-            # Place the snake and food symbols
-            for segment in self.snake:
-                grid_display[segment[0] + 1][segment[1] + 1] = 'S'  # Adjust for border offset
+        # Place the snake and food symbols
+        for segment in self.snake:
+            grid_display[segment[0] + 1][segment[1] + 1] = 'S'  # Adjust for border offset
 
-            grid_display[self.food[0] + 1][self.food[1] + 1] = 'F'  # Adjust for border offset
+        grid_display[self.food[0] + 1][self.food[1] + 1] = 'F'  # Adjust for border offset
 
-            # Print the display grid to the console
-            for row in grid_display:
-                print(' '.join(row))
+        # Print the display grid to the console
+        for row in grid_display:
+            print(' '.join(row))
 
         return self._get_state(), self.reward, self.done, {}
 
@@ -179,7 +179,7 @@ class SnakeEnv(gym.Env):
         """
         Render the environment to the screen. Currently, this is not implemented.
         """
-        pass
+        
 
     def close(self):
         """
