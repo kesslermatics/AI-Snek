@@ -45,12 +45,12 @@ class SnakeEnv(gym.Env):
         self.distance_before_move = 0
         self.distance_after_move = 0
         
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(4)
         
         # The observation will be the grid itself
         # The observation space is an (n, n, 1) array where 0 is empty, 1 is the snake, and 2 is the food
-        self.observation_space = spaces.Box(low=0, high=2, shape=(106,), dtype=np.float32)
-        
+        self.observation_space = spaces.Box(low=0, high=1, shape=(self.grid_size, self.grid_size, 3), dtype=np.float32)
+
         self.reset()
         
     def reset(self):
@@ -68,8 +68,8 @@ class SnakeEnv(gym.Env):
     def step(self, action):
         reward_for_eating = 20  # Reward for eating food
         reward_for_dying = -20  # Penalty for dying (hitting the wall or self)
-        reward_for_moving_towards_food = 1  # Reward for moving towards the food
-        reward_for_moving_away_from_food = -1  # Penalty for moving away from the food
+        reward_for_moving_towards_food = 0  # Reward for moving towards the food
+        reward_for_moving_away_from_food = 0  # Penalty for moving away from the food
 
         # Calculate the distance to the food before the move
         direction_vectors = [np.array([0, -1]), np.array([1, 0]), np.array([0, 1]), np.array([-1, 0])]
@@ -159,26 +159,29 @@ class SnakeEnv(gym.Env):
         pass
 
     def _get_observation(self):
-        # Get the base grid observation
-        grid = np.zeros((self.grid_size, self.grid_size, 1), dtype=np.float32)
-        for s in self.snake:
-            grid[s[0], s[1], 0] = 1
-        grid[self.food[0], self.food[1], 0] = 2
+        # Initialize a grid for each layer: snake, food, and danger
+        snake_layer = np.zeros((self.grid_size, self.grid_size), dtype=np.float32)
+        food_layer = np.zeros((self.grid_size, self.grid_size), dtype=np.float32)
+        danger_layer = np.zeros((self.grid_size, self.grid_size), dtype=np.float32)
 
-        # Check for danger in all directions
-        danger_straight = self.check_danger('up')
-        danger_left = self.check_danger('left')
-        danger_right = self.check_danger('right')
-        danger_back = self.check_danger('down')
+        # Set the snake's position on its layer
+        for segment in self.snake:
+            snake_layer[segment[0], segment[1]] = 1
 
-        # Get the direction of the food
-        food_direction_x, food_direction_y = self.get_food_direction()
+        # Set the food's position on its layer
+        food_layer[self.food[0], self.food[1]] = 1
 
-        # Combine the grid observation with danger and food direction
-        extended_observation = np.array([danger_straight, danger_left, danger_right, danger_back,
-                                         food_direction_x, food_direction_y])
+        # Identify dangerous positions and set them on the danger layer
+        # Dangerous positions could be the snake's body and walls
+        for x in range(self.grid_size):
+            for y in range(self.grid_size):
+                # Check if the coordinates are part of the snake's body
+                if any((segment == [x, y]).all() for segment in self.snake) or not self._inside(np.array([x, y])):
+                    danger_layer[x, y] = 1
 
-        return np.concatenate((grid.flatten(), extended_observation), axis=0)
+        # Combine the layers to create the observation
+        observation = np.stack((snake_layer, food_layer, danger_layer), axis=-1)
+        return observation
 
     def _inside(self, position):
         """

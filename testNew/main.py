@@ -3,7 +3,7 @@ import gym
 import sys
 from stable_baselines3 import DQN
 from stable_baselines3.dqn.policies import MlpPolicy
-from environments.snake_env import SnakeEnv
+from snake_env import SnakeEnv
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
 
@@ -14,7 +14,7 @@ plt.ion()
 env = SnakeEnv()
 
 # Instantiate the agent
-model = DQN(MlpPolicy, env, verbose=1, buffer_size=10000, learning_rate=0.001)
+model = DQN(MlpPolicy, env, verbose=1, buffer_size=300000, learning_rate=0.01)
 
 # Train the agent
 model.learn(total_timesteps=100000)
