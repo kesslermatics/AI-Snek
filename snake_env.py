@@ -66,10 +66,10 @@ class SnakeEnv(gym.Env):
         return self._get_observation()
     
     def step(self, action):
-        reward_for_eating = 20  # Reward for eating food
+        reward_for_eating = 40  # Reward for eating food
         reward_for_dying = -20  # Penalty for dying (hitting the wall or self)
-        reward_for_moving_towards_food = 0  # Reward for moving towards the food
-        reward_for_moving_away_from_food = 0  # Penalty for moving away from the food
+        reward_for_moving_towards_food = 0.5  # Reward for moving towards the food
+        reward_for_moving_away_from_food = -0.5  # Penalty for moving away from the food
 
         # Calculate the distance to the food before the move
         direction_vectors = [np.array([0, -1]), np.array([1, 0]), np.array([0, 1]), np.array([-1, 0])]
