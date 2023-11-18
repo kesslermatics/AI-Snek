@@ -1,14 +1,11 @@
-
-from stable_baselines3 import PPO
-
 import gym
-import pygame
 import numpy as np
-import random
+import pygame
 import sys
+import random
 from gym import spaces
-# since number of actions == 4 that means that the action value is from 0 to 3 inclusive
-class SnakeEnv(gym.Env):
+
+class SnekEnv(gym.Env):
   """Custom Environment that follows gym interface"""
   metadata = {'render.modes': ['human']}
   difficulty = 20
@@ -27,7 +24,7 @@ class SnakeEnv(gym.Env):
   UP = 2
   DOWN = 3
   def __init__(self):
-    super(SnakeEnv, self).__init__()
+    super(SnekEnv, self).__init__()
     pygame.init()
     # Initialise game window
     pygame.display.set_caption('Snake Eater')
@@ -59,7 +56,9 @@ class SnakeEnv(gym.Env):
 
   def step(self, action):
       self.counter += 1
+      reward = 0
       if self.counter > 100:
+          reward = -50
           return np.array([self.snake_pos[0], self.snake_pos[1], self.food_pos[0], self.food_pos[1]], dtype=np.float32), -100, True, {}
       if action == self.UP:
           self.change_to = 'UP'
@@ -105,19 +104,23 @@ class SnakeEnv(gym.Env):
       # Getting out of bounds
       if self.snake_pos[0] < 0 or self.snake_pos[0] > self.frame_size_x - 10:
           self.game_over = True
+          reward = -50
       if self.snake_pos[1] < 0 or self.snake_pos[1] > self.frame_size_y - 10:
           self.game_over = True
+          reward = -50
       # Touching the snake body
       for block in self.snake_body[1:]:
           if self.snake_pos[0] == block[0] and self.snake_pos[1] == block[1]:
               self.game_over = True
-      reward = 0
-      if self.snake_pos[0] == self.food_pos[0] and self.snake_pos[1] == self.food_pos[1]:
+              reward = -50
+      if (reward == 0):
+        if self.snake_pos[0] == self.food_pos[0] and self.snake_pos[1] == self.food_pos[1]:
           reward = 100
-      elif abs(self.snake_pos[0] - self.food_pos[0]) + abs(self.snake_pos[1] - self.food_pos[1]) > abs(self.prev_snake_pos[0] - self.food_pos[0]) + abs(self.prev_snake_pos[1] - self.food_pos[1]):
+        elif abs(self.snake_pos[0] - self.food_pos[0]) + abs(self.snake_pos[1] - self.food_pos[1]) > abs(self.prev_snake_pos[0] - self.food_pos[0]) + abs(self.prev_snake_pos[1] - self.food_pos[1]):
           reward = -1
-      elif abs(self.snake_pos[0] - self.food_pos[0]) + abs(self.snake_pos[1] - self.food_pos[1]) < abs(self.prev_snake_pos[0] - self.food_pos[0]) + abs(self.prev_snake_pos[1] - self.food_pos[1]):
+        elif abs(self.snake_pos[0] - self.food_pos[0]) + abs(self.snake_pos[1] - self.food_pos[1]) < abs(self.prev_snake_pos[0] - self.food_pos[0]) + abs(self.prev_snake_pos[1] - self.food_pos[1]):
           reward = 1
+
       self.prev_snake_pos = self.snake_pos.copy()
       done = self.game_over
       info = {}
@@ -163,21 +166,8 @@ class SnakeEnv(gym.Env):
       score_surface = score_font.render('Score : ' + str(self.score), True, color)
       score_rect = score_surface.get_rect()
       if choice == 1:
-          score_rect.midtop = (self.frame_size_x / 10, 15)
+          score_rect.midtop = (self.frame_size_x / 2, 15)
       else:
           score_rect.midtop = (self.frame_size_x / 2, self.frame_size_y / 1.25)
       self.game_window.blit(score_surface, score_rect)
       # pygame.display.flip()
-
-env = SnakeEnv()
-
-model = PPO('MlpPolicy', env, verbose=1)
-model.learn(total_timesteps=100000)
-model.save("snake_ai_model")
-obs = env.reset()
-for i in range(2000):
-    action, _state = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
-    env.render()
-    if done:
-      obs = env.reset()

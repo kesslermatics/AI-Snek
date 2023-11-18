@@ -1,46 +1,20 @@
-# Importing necessary libraries
-import gym
 import sys
-from stable_baselines3 import DQN
-from stable_baselines3.dqn.policies import MlpPolicy
-from snake_env import SnakeEnv
-import matplotlib.pyplot as plt
-from IPython.display import clear_output
+from env import SnekEnv
+from stable_baselines3 import PPO
 
-# Activate interactive mode for matplotlib
-plt.ion()
+env = SnekEnv()
 
-# Create the environment
-env = SnakeEnv()
+if (sys.argv[1] == "True"):
+    model = PPO('MlpPolicy', env, verbose=1, batch_size=256)
+    model.learn(total_timesteps=600000)
+    model.save("training/snake_ai_model_PPO")
 
-# Instantiate the agent
-model = DQN(MlpPolicy, env, verbose=1, buffer_size=300000, learning_rate=0.01, exploration_initial_eps=1, exploration_final_eps=0.05, exploration_fraction=0.5)
+model = PPO.load("training/snake_ai_model_PPO")
 
-# Train the agent
-model.learn(total_timesteps=100000)
-
-# Setting up the plot for live-updating during the training process
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.set_title('Training Progress')
-ax.set_xlabel('Episode')
-ax.set_ylabel('Score')
-xs, ys = [], []
-
-# Evaluate the trained agent
-episodes = int(sys.argv[2])
-for episode in range(episodes):
-    print(f"Episode: {episode}")
-    obs = env.reset()
-    done = False
-    episode_rewards = 0
-    while not done:
-        action, _states = model.predict(obs, deterministic=True)
-        obs, reward, done, info = env.step(action)
-        episode_rewards += reward
-    xs.append(episode)
-    ys.append(episode_rewards)
-    ax.plot(xs, ys, color='blue')
-    plt.draw()
-
-# Show the plot at the end of the training
-plt.show(block=True)
+obs = env.reset()
+while (True):
+    action, _state = model.predict(obs, deterministic=True)
+    obs, reward, done, info = env.step(action)
+    env.render()
+    if done:
+      obs = env.reset()
