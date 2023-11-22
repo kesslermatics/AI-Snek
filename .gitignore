@@ -1,4 +1,8 @@
 cnn_architecture/train/
 cnn_architecture/logs/
+.vscode/
+.idea/
 train/
 logs/
+.idea/vcs.xml
+__pycache__/
