@@ -1,18 +1,25 @@
 import sys
 from env import SnekEnv
 from stable_baselines3 import PPO
+from training_callback import TrainingCallback
 
+# Instantiate snake game
 env = SnekEnv()
 
-if (sys.argv[1] == "True"):
-    model = PPO('MlpPolicy', env, verbose=1, batch_size=256)
-    model.learn(total_timesteps=600000)
-    model.save("training/snake_ai_model_PPO")
+# Initialize tensorboard, model and log file paths
+CHECKPOINT_DIR = "./trainm/"
+LOG_DIR = "./logs/"
+callback = TrainingCallback(check_freq=1000000, save_path=CHECKPOINT_DIR)
 
-model = PPO.load("training/snake_ai_model_PPO")
+model = PPO('MlpPolicy', env, verbose=1, batch_size=256, tensorboard_log=LOG_DIR)
+
+if len(sys.argv) == 1:
+    model.learn(total_timesteps=40000000, callback=callback)
+else:
+    model = PPO.load(f"{CHECKPOINT_DIR}/{sys.argv[1]}")
 
 obs = env.reset()
-while (True):
+while True:
     action, _state = model.predict(obs, deterministic=True)
     obs, reward, done, info = env.step(action)
     env.render()
