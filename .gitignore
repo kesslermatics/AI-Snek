@@ -4,5 +4,4 @@ cnn_architecture/logs/
 .idea/
 train/
 logs/
-.idea/vcs.xml
 __pycache__/
