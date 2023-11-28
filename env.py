@@ -36,7 +36,7 @@ class SnekEnv(gym.Env):
     # The number of actions are defined for the agent to know how many actions he can do
     number_of_actions = 4
     # The number of observations are the amount of information the agent has about the current environment
-    number_of_observations = 4
+    number_of_observations = 9
 
     def __init__(self):
         super(SnekEnv, self).__init__()
@@ -63,19 +63,14 @@ class SnekEnv(gym.Env):
         self.direction = 'RIGHT'
         self.change_to = self.direction
 
-        return np.array(
-            [
-                self.snake_pos[0], self.snake_pos[1], self.food_pos[0], self.food_pos[1]
-                ],
-                dtype=np.float32)
+        return self.get_observation()
 
     def step(self, action):
         self.counter += 1
         reward = 0
         if self.counter > 100:
             reward = self.reward_for_dying
-            return np.array([self.snake_pos[0], self.snake_pos[1], self.food_pos[0], self.food_pos[1]],
-                            dtype=np.float32), reward, True, {}
+            return self.get_observation(), reward, True, {}
         if action == self.UP:
             self.change_to = 'UP'
         if action == self.DOWN:
@@ -139,11 +134,7 @@ class SnekEnv(gym.Env):
         self.prev_snake_pos = self.snake_pos.copy()
         done = self.game_over
         info = {}
-        return np.array(
-            [
-                    self.snake_pos[0], self.snake_pos[1], self.food_pos[0], self.food_pos[1]
-                    ],
-                    dtype=np.float32), reward, done, info
+        return self.get_observation(), reward, done, info
 
     def render(self, mode='human'):
         # Render visual graphics
@@ -200,3 +191,41 @@ class SnekEnv(gym.Env):
         y_pos = self.snake_pos[1]
         return (self.window_size_y - y_pos) < y_pos
 
+    def get_observation(self):
+        # Aktuelle Position von Snake und Food
+        snake_x, snake_y = self.snake_pos
+        food_x, food_y = self.food_pos
+
+        # Gefahrenbewusstsein
+        danger_left = int(self.is_danger('left'))
+        danger_right = int(self.is_danger('right'))
+        danger_up = int(self.is_danger('up'))
+        danger_down = int(self.is_danger('down'))
+
+        # Relative Position des Futters
+        food_rel_x = food_x - snake_x
+        food_rel_y = food_y - snake_y
+
+        # Länge der Schlange
+        snake_length = len(self.snake_body)
+
+        return np.array(
+            [
+                snake_x, snake_y,
+                food_rel_x, food_rel_y,
+                danger_left, danger_right, danger_up, danger_down,
+                snake_length
+            ],
+            dtype=np.float32
+        )
+
+    def is_danger(self, direction):
+        head_x, head_y = self.snake_pos
+        if direction == 'left':
+            return head_y == 0 or [head_x, head_y - 1] in self.snake_body
+        elif direction == 'right':
+            return head_y == self.window_size_y - 10 or [head_x, head_y + 1] in self.snake_body
+        elif direction == 'up':
+            return head_x == 0 or [head_x - 1, head_y] in self.snake_body
+        elif direction == 'down':
+            return head_x == self.window_size_x - 10 or [head_x + 1, head_y] in self.snake_body

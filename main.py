@@ -7,7 +7,7 @@ from training_callback import TrainingCallback
 env = SnekEnv()
 
 # Initialize tensorboard, model and log file paths
-CHECKPOINT_DIR = "./train/"
+CHECKPOINT_DIR = "./train_updated_observation/"
 LOG_DIR = "./logs/"
 callback = TrainingCallback(check_freq=1000000, save_path=CHECKPOINT_DIR)
 
@@ -16,7 +16,7 @@ model = PPO('MlpPolicy', env=env, verbose=1, batch_size=256, tensorboard_log=LOG
 if len(sys.argv) == 1:
     model.learn(total_timesteps=40000000, callback=callback)
 else:
-    model = PPO.load(f"{CHECKPOINT_DIR}/{sys.argv[1]}")
+    model = PPO.load(f"{CHECKPOINT_DIR}/1000000")
 
 obs = env.reset()
 while True:
