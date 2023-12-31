@@ -1,7 +1,6 @@
 import os
 from stable_baselines3.common.callbacks import BaseCallback
 
-
 class TrainingCallback(BaseCallback):
     def __init__(self, check_freq, save_path, verbose: int = 0):
         super().__init__(verbose)

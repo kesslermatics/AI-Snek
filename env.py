@@ -19,7 +19,7 @@ class SnekEnv(gym.Env):
     black = pygame.Color(0, 0, 0)
     white = pygame.Color(255, 255, 255)
     red = pygame.Color(255, 0, 0)
-    green = pygame.Color(0, 255, 0)
+    green = pygame.Color(100, 200, 100)
     blue = pygame.Color(0, 0, 255)
 
     # Action Constants
@@ -52,7 +52,8 @@ class SnekEnv(gym.Env):
         self.reset()
 
         self.action_space = spaces.Discrete(self.number_of_actions)
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.number_of_observations,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.number_of_observations,),
+                                            dtype=np.float32)
 
     def reset(self):
         self.counter = 0
@@ -138,14 +139,15 @@ class SnekEnv(gym.Env):
 
     def render(self, mode='human'):
         # Render visual graphics
-        self.game_window.fill(self.white)
+        self.game_window.fill(self.green)
         # Render snake
         for pos in self.snake_body:
-            pygame.draw.rect(self.game_window, self.green, pygame.Rect(pos[0], pos[1], 10, 10))
+            pygame.draw.rect(self.game_window, self.blue, pygame.Rect(pos[0], pos[1], 10, 10))
 
         # Render food
         pygame.draw.rect(self.game_window, self.red, pygame.Rect(self.food_pos[0], self.food_pos[1], 10, 10))
         # self.show_score(1, self.white, 'consolas', 20)
+        pygame.display.set_caption('AI Snek | ' + "Score: " + str(self.score))
         # Refresh game screen
         pygame.display.update()
         # Refresh rate
