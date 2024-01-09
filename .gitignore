@@ -5,3 +5,4 @@ cnn_architecture/logs/
 train/
 logs/
 __pycache__/
+/.vscode/
