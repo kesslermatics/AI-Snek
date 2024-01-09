@@ -9,7 +9,7 @@ from gym import spaces
 class SnekEnv(gym.Env):
     """Custom Environment that follows gym interface"""
     metadata = {'render.modes': ['human']}
-    speed_of_snake = 40
+    speed_of_snake = 30
 
     # Window size
     window_size_x = 480
@@ -69,7 +69,7 @@ class SnekEnv(gym.Env):
     def step(self, action):
         self.counter += 1
         reward = 0
-        if self.counter > 100:
+        if self.counter > 200:
             reward = self.reward_for_dying
             return self.get_observation(), reward, True, {}
         if action == self.UP:
